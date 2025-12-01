@@ -1,0 +1,114 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define TAM_FILA 5
+
+// Struct da peça
+typedef struct {
+    char nome;   // Tipo da peça: I, O, T, L
+    int id;      // Identificador único
+} Peca;
+
+// Função que gera uma peça automaticamente
+Peca gerarPeca() {
+    Peca p;
+    char tipos[] = {'I', 'O', 'T', 'L'};
+    p.nome = tipos[rand() % 4];
+    p.id = rand() % 1000; // id aleatório simples
+    return p;
+}
+
+// Exibe a fila
+void exibirFila(Peca fila[], int frente, int qtd) {
+    printf("\n=== Fila de Peças Futuras ===\n");
+    if (qtd == 0) {
+        printf("Fila vazia!\n");
+        return;
+    }
+
+    for (int i = 0; i < qtd; i++) {
+        int pos = (frente + i) % TAM_FILA;
+        printf("[%d] Peça %c (ID %d)\n", i, fila[pos].nome, fila[pos].id);
+    }
+}
+
+// Remove a peça da frente (dequeue)
+void jogarPeca(Peca fila[], int *frente, int *qtd) {
+    if (*qtd == 0) {
+        printf("\n❌ Não há peças para jogar!\n");
+        return;
+    }
+
+    printf("\n🎮 Jogando peça: %c (ID %d)\n",
+           fila[*frente].nome,
+           fila[*frente].id);
+
+    *frente = (*frente + 1) % TAM_FILA;
+    (*qtd)--;
+}
+
+// Insere nova peça na fila (enqueue)
+void inserirPeca(Peca fila[], int *frente, int *qtd) {
+    if (*qtd == TAM_FILA) {
+        printf("\n❌ Fila cheia! Não é possível inserir.\n");
+        return;
+    }
+
+    int final = (*frente + *qtd) % TAM_FILA;
+    fila[final] = gerarPeca();
+    (*qtd)++;
+
+    printf("\n➕ Nova peça inserida: %c (ID %d)\n",
+           fila[final].nome,
+           fila[final].id);
+}
+
+int main() {
+    srand(time(NULL));
+
+    Peca fila[TAM_FILA];
+    int frente = 0;   // índice da primeira peça
+    int qtd = TAM_FILA;
+
+    // Inicializando fila com 5 peças automáticas
+    for (int i = 0; i < TAM_FILA; i++) {
+        fila[i] = gerarPeca();
+    }
+
+    int opcao;
+
+    do {
+        printf("\n===== MENU =====\n");
+        printf("1 - Visualizar fila\n");
+        printf("2 - Jogar peça (dequeue)\n");
+        printf("3 - Inserir nova peça (enqueue)\n");
+        printf("0 - Sair\n");
+        printf("Escolha: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1:
+                exibirFila(fila, frente, qtd);
+                break;
+
+            case 2:
+                jogarPeca(fila, &frente, &qtd);
+                break;
+
+            case 3:
+                inserirPeca(fila, &frente, &qtd);
+                break;
+
+            case 0:
+                printf("\n👋 Saindo...\n");
+                break;
+
+            default:
+                printf("\n❌ Opção inválida!\n");
+        }
+
+    } while (opcao != 0);
+
+    return 0;
+}
