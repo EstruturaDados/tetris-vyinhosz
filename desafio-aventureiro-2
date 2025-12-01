@@ -1,0 +1,183 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define TAM_FILA 5
+#define TAM_PILHA 3
+
+// Struct da peça
+typedef struct {
+    char nome;   // Tipos: I, O, T, L
+    int id;
+} Peca;
+
+// ----------- Função que gera peça automática -------------
+Peca gerarPeca() {
+    Peca p;
+    char tipos[] = {'I', 'O', 'T', 'L'};
+    p.nome = tipos[rand() % 4];
+    p.id = rand() % 1000;
+    return p;
+}
+
+// ----------- Exibe fila -----------------
+void exibirFila(Peca fila[], int frente, int qtd) {
+    printf("\n=== Fila de Peças Futuras ===\n");
+    if (qtd == 0) {
+        printf("(Vazia)\n");
+        return;
+    }
+
+    for (int i = 0; i < qtd; i++) {
+        int pos = (frente + i) % TAM_FILA;
+        printf("[%d] %c (ID %d)\n", i, fila[pos].nome, fila[pos].id);
+    }
+}
+
+// ----------- Exibe pilha -----------------
+void exibirPilha(Peca pilha[], int topo) {
+    printf("\n=== Pilha de Reserva ===\n");
+
+    if (topo == -1) {
+        printf("(Vazia)\n");
+        return;
+    }
+
+    for (int i = topo; i >= 0; i--) {
+        printf("[%d] %c (ID %d)\n", i, pilha[i].nome, pilha[i].id);
+    }
+}
+
+// ----------- Jogar peça (dequeue) -----------------
+void jogarPeca(Peca fila[], int *frente, int *qtd) {
+    if (*qtd == 0) {
+        printf("\n❌ Não há peças na fila!\n");
+        return;
+    }
+
+    printf("\n🎮 Jogando peça: %c (ID %d)\n",
+           fila[*frente].nome, fila[*frente].id);
+
+    *frente = (*frente + 1) % TAM_FILA;
+    (*qtd)--;
+}
+
+// ----------- Inserir nova peça (enqueue) -----------------
+void inserirPeca(Peca fila[], int *frente, int *qtd) {
+    if (*qtd == TAM_FILA) {
+        printf("\n❌ Fila cheia! Não é possível inserir.\n");
+        return;
+    }
+
+    int final = (*frente + *qtd) % TAM_FILA;
+    fila[final] = gerarPeca();
+    (*qtd)++;
+
+    printf("\n➕ Nova peça gerada: %c (ID %d)\n",
+           fila[final].nome, fila[final].id);
+}
+
+// ----------- Reservar peça (push) -----------------
+void reservarPeca(Peca fila[], int *frente, int *qtd,
+                  Peca pilha[], int *topo) {
+
+    if (*topo == TAM_PILHA - 1) {
+        printf("\n❌ Pilha cheia! Não é possível reservar.\n");
+        return;
+    }
+
+    if (*qtd == 0) {
+        printf("\n❌ Não há peça para reservar!\n");
+        return;
+    }
+
+    // Peça da frente da fila vai para a pilha
+    Peca p = fila[*frente];
+    (*topo)++;
+    pilha[*topo] = p;
+
+    printf("\n📦 Peça reservada: %c (ID %d)\n", p.nome, p.id);
+
+    // Remove da fila
+    *frente = (*frente + 1) % TAM_FILA;
+    (*qtd)--;
+}
+
+// ----------- Usar peça reservada (pop) -----------------
+void usarReservada(Peca pilha[], int *topo) {
+    if (*topo == -1) {
+        printf("\n❌ Não há peças reservadas!\n");
+        return;
+    }
+
+    Peca p = pilha[*topo];
+    (*topo)--;
+
+    printf("\n🎯 Usando peça reservada: %c (ID %d)\n", p.nome, p.id);
+}
+
+int main() {
+    srand(time(NULL));
+
+    // Estruturas
+    Peca fila[TAM_FILA];
+    Peca pilha[TAM_PILHA];
+
+    int frente = 0;
+    int qtd = TAM_FILA;
+    int topo = -1;
+
+    // Inicialização da fila com 5 peças
+    for (int i = 0; i < TAM_FILA; i++) {
+        fila[i] = gerarPeca();
+    }
+
+    int opcao;
+
+    do {
+        printf("\n===== MENU =====\n");
+        printf("1 - Jogar peça\n");
+        printf("2 - Reservar peça\n");
+        printf("3 - Usar peça reservada\n");
+        printf("4 - Exibir fila e pilha\n");
+        printf("0 - Sair\n");
+        printf("Escolha: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+
+            case 1:
+                jogarPeca(fila, &frente, &qtd);
+                inserirPeca(fila, &frente, &qtd); // fila deve ficar cheia
+                break;
+
+            case 2:
+                reservarPeca(fila, &frente, &qtd, pilha, &topo);
+                inserirPeca(fila, &frente, &qtd); // fila deve ficar cheia
+                break;
+
+            case 3:
+                usarReservada(pilha, &topo);
+                break;
+
+            case 4:
+                exibirFila(fila, frente, qtd);
+                exibirPilha(pilha, topo);
+                break;
+
+            case 0:
+                printf("\n👋 Encerrando...\n");
+                break;
+
+            default:
+                printf("\n❌ Opção inválida!\n");
+        }
+
+        // exibição automática após cada ação (opcional)
+        exibirFila(fila, frente, qtd);
+        exibirPilha(pilha, topo);
+
+    } while (opcao != 0);
+
+    return 0;
+}
